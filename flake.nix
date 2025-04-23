@@ -1,5 +1,5 @@
 {
-  description = "Build a cargo project without extra checks";
+  description = "Computer Algebra System (CAS) written in Rust";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -16,17 +16,15 @@
 
         craneLib = crane.mkLib pkgs;
 
-        # Common arguments can be set here to avoid repeating them later
-        # Note: changes here will rebuild all dependency crates
         commonArgs = {
           src = craneLib.cleanCargoSource ./.;
           strictDeps = true;
 
           buildInputs = [
-            # Add additional build inputs here
-          ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
-            # Additional darwin specific inputs can be set here
-            pkgs.libiconv
+            pkgs.gnum4
+            pkgs.cairo
+            pkgs.glib
+            pkgs.pkg-config
           ];
         };
 
