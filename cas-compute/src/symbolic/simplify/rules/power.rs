@@ -1,12 +1,10 @@
 //! Simplification rules for power expressions.
 
-use crate::primitive::int;
 use crate::symbolic::{
     expr::{Expr, Primary},
     simplify::{rules::do_power, step::Step},
     step_collector::StepCollector,
 };
-use rug::ops::Pow;
 
 /// `a^0 = 1`
 ///
@@ -15,7 +13,7 @@ use rug::ops::Pow;
 pub fn power_zero(expr: &Expr, step_collector: &mut dyn StepCollector<Step>) -> Option<Expr> {
     let opt = do_power(expr, |_, rhs| {
         if rhs.as_integer()?.is_zero() {
-            Some(Expr::Primary(Primary::Integer(int(1))))
+            Some(Expr::Primary(Primary::i64(int(1))))
         } else {
             None
         }
@@ -32,7 +30,7 @@ pub fn power_zero(expr: &Expr, step_collector: &mut dyn StepCollector<Step>) -> 
 pub fn power_zero_left(expr: &Expr, step_collector: &mut dyn StepCollector<Step>) -> Option<Expr> {
     let opt = do_power(expr, |lhs, _| {
         if lhs.as_integer()?.is_zero() {
-            Some(Expr::Primary(Primary::Integer(int(0))))
+            Some(Expr::Primary(Primary::i64(int(0))))
         } else {
             None
         }
@@ -46,7 +44,7 @@ pub fn power_zero_left(expr: &Expr, step_collector: &mut dyn StepCollector<Step>
 pub fn power_one_left(expr: &Expr, step_collector: &mut dyn StepCollector<Step>) -> Option<Expr> {
     let opt = do_power(expr, |lhs, _| {
         if lhs.as_integer()? == &1 {
-            Some(Expr::Primary(Primary::Integer(int(1))))
+            Some(Expr::Primary(Primary::i64(int(1))))
         } else {
             None
         }
@@ -92,7 +90,7 @@ pub fn integer(expr: &Expr, _: &mut dyn StepCollector<Step>) -> Option<Expr> {
     do_power(expr, |lhs, rhs| {
         if let Some(lhs) = lhs.as_integer() {
             if let Some(rhs) = rhs.as_integer() {
-                return Some(Expr::Primary(Primary::Integer(lhs.pow(rhs.to_u32()?).into())));
+                return Some(Expr::Primary(Primary::i64(lhs.pow(rhs.to_u32()?).into())));
             }
         }
 

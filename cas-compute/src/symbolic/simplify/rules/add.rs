@@ -22,11 +22,11 @@ fn add_assign(lhs: &mut Expr, rhs: Expr) {
             let numerator = num1 * &den2 + num2 * &den1;
             let denominator = den1 * den2;
             if denominator == 1 {
-                *lhs = Expr::Primary(Primary::Integer(numerator));
+                *lhs = Expr::Primary(Primary::i64(numerator));
             } else {
                 *lhs = make_fraction(
-                    Expr::Primary(Primary::Integer(numerator)),
-                    Expr::Primary(Primary::Integer(denominator)),
+                    Expr::Primary(Primary::i64(numerator)),
+                    Expr::Primary(Primary::i64(denominator)),
                 );
             }
         },
@@ -81,13 +81,13 @@ pub fn combine_like_terms(expr: &Expr, step_collector: &mut dyn StepCollector<St
         /// - `a` -> `(1, a)`
         fn get_coeff(expr: &Expr) -> (Expr, Expr) {
             match expr {
-                Expr::Primary(Primary::Integer(_)) | Expr::Primary(Primary::Float(_)) => {
-                    (expr.clone(), Expr::Primary(Primary::Integer(int(1))))
+                Expr::Primary(Primary::i64(_)) | Expr::Primary(Primary::Float(_)) => {
+                    (expr.clone(), Expr::Primary(Primary::i64(int(1))))
                 },
                 Expr::Mul(factors) => {
                     let mut factors = factors.clone();
                     let fraction = extract_fractional(&mut factors)
-                        .unwrap_or(Expr::Primary(Primary::Integer(int(1))));
+                        .unwrap_or(Expr::Primary(Primary::i64(int(1))));
 
                     (
                         fraction,
@@ -96,12 +96,12 @@ pub fn combine_like_terms(expr: &Expr, step_collector: &mut dyn StepCollector<St
                 },
                 Expr::Exp(..) => {
                     if expr.is_integer_recip() {
-                        (expr.clone(), Expr::Primary(Primary::Integer(int(1))))
+                        (expr.clone(), Expr::Primary(Primary::i64(int(1))))
                     } else {
-                        (Expr::Primary(Primary::Integer(int(1))), expr.clone())
+                        (Expr::Primary(Primary::i64(int(1))), expr.clone())
                     }
                 },
-                _ => (Expr::Primary(Primary::Integer(int(1))), expr.clone()),
+                _ => (Expr::Primary(Primary::i64(int(1))), expr.clone()),
             }
         }
 

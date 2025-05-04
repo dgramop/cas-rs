@@ -20,7 +20,7 @@ use crate::symbolic::{
 pub fn i_pow_0(expr: &Expr, step_collector: &mut dyn StepCollector<Step>) -> Option<Expr> {
     let opt = do_power(expr, |lhs, rhs| {
         if lhs.as_symbol()? == "i" && int(rhs.as_integer()? % 4).is_zero() {
-            Some(Expr::Primary(Primary::Integer(int(1))))
+            Some(Expr::Primary(Primary::i64(int(1))))
         } else {
             None
         }
@@ -48,7 +48,7 @@ pub fn i_pow_1(expr: &Expr, step_collector: &mut dyn StepCollector<Step>) -> Opt
 pub fn i_pow_2(expr: &Expr, step_collector: &mut dyn StepCollector<Step>) -> Option<Expr> {
     let opt = do_power(expr, |lhs, rhs| {
         if lhs.as_symbol()? == "i" && int(rhs.as_integer()? % 4) == 2 {
-            Some(Expr::Primary(Primary::Integer(int(-1))))
+            Some(Expr::Primary(Primary::i64(int(-1))))
         } else {
             None
         }

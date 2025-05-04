@@ -17,8 +17,6 @@ use crate::numerical::{
     eval::Eval,
     value::Value,
 };
-use crate::primitive::float;
-use rug::{ops::Pow, Float};
 
 /// Computes the numerical derivative of an expression, using the higher-order differentiation
 /// method found

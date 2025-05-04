@@ -36,8 +36,6 @@ mod tests {
     use crate::consts;
     use crate::funcs::miscellaneous::{Abs, Factorial};
     use crate::numerical::builtin::Builtin;
-    use crate::primitive::float;
-    use rug::ops::Pow;
     use super::*;
 
     use cas_parser::parser::{ast::expr::Expr, Parser};
@@ -94,7 +92,7 @@ mod tests {
         let expr = parser.try_parse_full::<Expr>().unwrap();
 
         let val1 = expr.eval_default().unwrap();
-        let fac_17 = if let Value::Integer(fac_17) = Factorial::eval_static(float(17)) {
+        let fac_17 = if let Value::i64(fac_17) = Factorial::eval_static(float(17)) {
             fac_17
         } else {
             unreachable!("factorial of 17 is an integer")

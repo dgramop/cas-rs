@@ -1,5 +1,4 @@
 use cas_parser::parser::{ast::binary::Binary, token::op::BinOpKind};
-use rug::ops::Pow;
 use crate::eval_break;
 use crate::numerical::{
     ctxt::Ctxt,
@@ -7,7 +6,6 @@ use crate::numerical::{
     eval::{error::EvalError, Eval},
     value::Value,
 };
-use crate::primitive::{int_from_float, float};
 
 /// Evaluates a binary expression with two integer operands.
 fn eval_integer_operands(
@@ -17,33 +15,33 @@ fn eval_integer_operands(
     right: Value,
 ) -> Result<Value, EvalError> {
     let typename = left.typename();
-    let (Value::Integer(left), Value::Integer(right)) = (left, right) else {
+    let (Value::i64(left), Value::i64(right)) = (left, right) else {
         unreachable!()
     };
     Ok(match op {
         BinOpKind::Exp => {
-            // NOTE: there is no implementation of `pow` for `rug::Integer` with `rug::Integer`
+            // NOTE: there is no implementation of `pow` for `rug::i64` with `rug::i64`
             if let Some(right) = right.to_u16() {
                 // so try the `u32` implementation if `right` fits in a `u16` (`u32::MAX` takes
                 // unreasonably long to compute), ensuring we get full precision
 
                 // `right` is a positive integer
-                Value::Integer(left.pow(u32::from(right)))
+                Value::i64(left.pow(u32::from(right)))
             } else {
                 // otherwise, use the `Float` implementation, which will be faster, but can lose
                 // precision
                 Value::Float(float(left).pow(right))
             }
         },
-        BinOpKind::Mul => Value::Integer(left * right),
+        BinOpKind::Mul => Value::i64(left * right),
         BinOpKind::Div => Value::Float(float(left) / float(right)),
-        BinOpKind::Mod => Value::Integer(left % right),
-        BinOpKind::Add => Value::Integer(left + right),
-        BinOpKind::Sub => Value::Integer(left - right),
-        BinOpKind::BitRight => Value::Integer(left >> right.to_usize().ok_or(BitshiftOverflow)?),
-        BinOpKind::BitLeft => Value::Integer(left << right.to_usize().ok_or(BitshiftOverflow)?),
-        BinOpKind::BitAnd => Value::Integer(left & right),
-        BinOpKind::BitOr => Value::Integer(left | right),
+        BinOpKind::Mod => Value::i64(left % right),
+        BinOpKind::Add => Value::i64(left + right),
+        BinOpKind::Sub => Value::i64(left - right),
+        BinOpKind::BitRight => Value::i64(left >> right.to_usize().ok_or(BitshiftOverflow)?),
+        BinOpKind::BitLeft => Value::i64(left << right.to_usize().ok_or(BitshiftOverflow)?),
+        BinOpKind::BitAnd => Value::i64(left & right),
+        BinOpKind::BitOr => Value::i64(left | right),
         BinOpKind::Greater => Value::Boolean(left > right),
         BinOpKind::GreaterEq => Value::Boolean(left >= right),
         BinOpKind::Less => Value::Boolean(left < right),

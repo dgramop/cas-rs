@@ -207,7 +207,7 @@ impl Display for ValueFormatter<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self.value {
             Value::Float(n) => float::fmt(f, n, self.options),
-            Value::Integer(n) => integer::fmt(f, n, self.options),
+            Value::i64(n) => integer::fmt(f, n, self.options),
             Value::Complex(c) => complex::fmt(f, c, self.options),
             Value::Boolean(b) => write!(f, "{}", b),
             Value::Unit => write!(f, "()"),

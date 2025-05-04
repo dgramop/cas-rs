@@ -1,6 +1,5 @@
 //! Utility functions to format complex numbers.
 
-use rug::{Complex, Float};
 use std::fmt::Formatter;
 use super::{float, FormatOptions, NumberFormat};
 

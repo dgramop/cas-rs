@@ -2,9 +2,7 @@
 
 use cas_attrs::builtin;
 use crate::consts::{E, ONE, PI, TAU, TWO, ZERO};
-use crate::primitive::{float, float_from_str, int};
 use once_cell::sync::Lazy;
-use rug::{float::Special, ops::Pow, Float, Integer};
 use super::miscellaneous::partial_factorial;
 
 /// The error function, `erf(x)`.
@@ -174,7 +172,7 @@ pub struct Geompdf;
 
 #[cfg_attr(feature = "numerical", builtin)]
 impl Geompdf {
-    pub fn eval_static(p: Float, n: Integer) -> Float {
+    pub fn eval_static(p: Float, n: i64) -> Float {
         if n <= *ZERO {
             return float(&*ZERO);
         }
@@ -193,7 +191,7 @@ pub struct Geomcdf;
 
 #[cfg_attr(feature = "numerical", builtin)]
 impl Geomcdf {
-    pub fn eval_static(p: Float, n: Integer) -> Float {
+    pub fn eval_static(p: Float, n: i64) -> Float {
         if n <= *ZERO {
             return float(&*ZERO);
         }
@@ -212,7 +210,7 @@ pub struct Binompdf;
 
 #[cfg_attr(feature = "numerical", builtin)]
 impl Binompdf {
-    pub fn eval_static(n: Integer, p: Float, x: Integer) -> Float {
+    pub fn eval_static(n: i64, p: Float, x: i64) -> Float {
         if x < *ZERO || x > n {
             return float(&*ZERO);
         }
@@ -235,7 +233,7 @@ pub struct Binomcdf;
 
 #[cfg_attr(feature = "numerical", builtin)]
 impl Binomcdf {
-    pub fn eval_static(n: Integer, p: Float, mut x: Integer) -> Float {
+    pub fn eval_static(n: i64, p: Float, mut x: i64) -> Float {
         if x < *ZERO {
             return float(&*ZERO);
         } else if x >= n {
@@ -260,7 +258,7 @@ pub struct Poisspdf;
 
 #[cfg_attr(feature = "numerical", builtin)]
 impl Poisspdf {
-    pub fn eval_static(k: Integer, l: Float) -> Float {
+    pub fn eval_static(k: i64, l: Float) -> Float {
         if k < *ZERO {
             return float(&*ZERO);
         }
@@ -281,7 +279,7 @@ pub struct Poisscdf;
 
 #[cfg_attr(feature = "numerical", builtin)]
 impl Poisscdf {
-    pub fn eval_static(k: Integer, l: Float) -> Float {
+    pub fn eval_static(k: i64, l: Float) -> Float {
         if k < *ZERO {
             return float(&*ZERO);
         }

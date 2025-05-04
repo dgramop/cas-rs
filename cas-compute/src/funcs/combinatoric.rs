@@ -2,7 +2,6 @@
 
 use cas_attrs::builtin;
 use crate::{funcs::miscellaneous::partial_factorial, primitive::int};
-use rug::Integer;
 
 /// Combinations function.
 ///
@@ -18,10 +17,10 @@ pub struct Ncr;
 
 #[cfg_attr(feature = "numerical", builtin)]
 impl Ncr {
-    pub fn eval_static(n: Integer, k: Integer) -> Integer {
+    pub fn eval_static(n: i64, k: i64) -> i64 {
         if k > n {
             // TODO: what if k > n, return an error
-            return Integer::from(0);
+            return 0;
         }
 
         let sub = int(&n - &k);
@@ -40,7 +39,7 @@ pub struct Npr;
 
 #[cfg_attr(feature = "numerical", builtin)]
 impl Npr {
-    pub fn eval_static(n: Integer, k: Integer) -> Integer {
+    pub fn eval_static(n: i64, k: i64) -> i64 {
         // TODO: report error
 
         let sub = &n - k;

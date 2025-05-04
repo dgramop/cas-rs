@@ -61,7 +61,6 @@ use cas_parser::parser::{
     token::op::{BinOpKind, Precedence, UnaryOpKind},
 };
 use iter::ExprIter;
-use rug::{Float, Integer};
 use std::{
     cmp::Ordering,
     collections::hash_map::DefaultHasher,
@@ -74,7 +73,7 @@ use super::simplify::fraction::make_fraction;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Primary {
     /// An integer, such as `2` or `144`.
-    Integer(Integer),
+    i64(i64),
 
     /// A floating-point number, such as `3.14` or `0.5`.
     Float(Float),
@@ -92,7 +91,7 @@ pub enum Primary {
 impl Hash for Primary {
     fn hash<H: Hasher>(&self, state: &mut H) {
         match self {
-            Self::Integer(int) => int.hash(state),
+            Self::i64(int) => int.hash(state),
             // this must be safe for the `Hash` impl to be valid
             Self::Float(float) => float.get_significand().unwrap().hash(state),
             Self::Symbol(sym) => sym.hash(state),
@@ -107,7 +106,7 @@ impl Hash for Primary {
 impl std::fmt::Display for Primary {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Integer(num) => write!(f, "{}", num.to_f64()),
+            Self::i64(num) => write!(f, "{}", num.to_f64()),
             Self::Float(num) => write!(f, "{}", num.to_f64()),
             Self::Symbol(sym) => write!(f, "{}", sym),
             Self::Call(name, args) => {
@@ -125,7 +124,7 @@ impl std::fmt::Display for Primary {
     }
 }
 
-/// [`Eq`] is implemented manually to allow comparing [`Primary::Integer`] and [`Primary::Float`]s.
+/// [`Eq`] is implemented manually to allow comparing [`Primary::i64`] and [`Primary::Float`]s.
 /// This module **must never** produce non-normal [`Float`]s (such as `NaN` or `Infinity`)! Report
 /// any bugs that cause this to happen.
 impl Eq for Primary {}
@@ -133,14 +132,14 @@ impl Eq for Primary {}
 /// Adds two [`Primary`]s together. If both are the **same numeric type**, the numbers are added
 /// together. Otherwise, the two [`Primary`]s are wrapped in an [`Expr::Add`].
 ///
-/// Note this means that adding an [`Integer`] and a [`Float`] will result in an **[`Expr::Add`]**.
+/// Note this means that adding an [`i64`] and a [`Float`] will result in an **[`Expr::Add`]**.
 impl Add<Primary> for Primary {
     type Output = Expr;
 
     fn add(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
-            (Primary::Integer(lhs), Primary::Integer(rhs)) => {
-                Expr::Primary(Primary::Integer(lhs + rhs))
+            (Primary::i64(lhs), Primary::i64(rhs)) => {
+                Expr::Primary(Primary::i64(lhs + rhs))
             },
             (Primary::Float(lhs), Primary::Float(rhs)) => {
                 Expr::Primary(Primary::Float(lhs + rhs))
@@ -156,15 +155,15 @@ impl Add<Primary> for Primary {
 /// Multiplies two [`Primary`]s together. If both are the **same numeric type**, the numbers are
 /// multiplied together. Otherwise, the two [`Primary`]s are wrapped in an [`Expr::Mul`].
 ///
-/// Note this means that multiplying an [`Integer`] and a [`Float`] will result in an
+/// Note this means that multiplying an [`i64`] and a [`Float`] will result in an
 /// **[`Expr::Mul`]**.
 impl Mul<Primary> for Primary {
     type Output = Expr;
 
     fn mul(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
-            (Primary::Integer(lhs), Primary::Integer(rhs)) => {
-                Expr::Primary(Primary::Integer(lhs * rhs))
+            (Primary::i64(lhs), Primary::i64(rhs)) => {
+                Expr::Primary(Primary::i64(lhs * rhs))
             },
             (Primary::Float(lhs), Primary::Float(rhs)) => {
                 Expr::Primary(Primary::Float(lhs * rhs))
@@ -294,32 +293,32 @@ impl Expr {
         lhs.cmp(&rhs)
     }
 
-    /// If the expression is a [`Primary::Integer`], returns a reference to the contained integer.
-    pub fn as_integer(&self) -> Option<&Integer> {
+    /// If the expression is a [`Primary::i64`], returns a reference to the contained integer.
+    pub fn as_integer(&self) -> Option<&i64> {
         match self {
-            Self::Primary(Primary::Integer(int)) => Some(int),
+            Self::Primary(Primary::i64(int)) => Some(int),
             _ => None,
         }
     }
 
-    /// If the expression is a [`Primary::Integer`], returns the contained integer.
-    pub fn into_integer(self) -> Option<Integer> {
+    /// If the expression is a [`Primary::i64`], returns the contained integer.
+    pub fn into_integer(self) -> Option<i64> {
         match self {
-            Self::Primary(Primary::Integer(int)) => Some(int),
+            Self::Primary(Primary::i64(int)) => Some(int),
             _ => None,
         }
     }
 
-    /// Returns true if the expression is a [`Primary::Integer`].
+    /// Returns true if the expression is a [`Primary::i64`].
     pub fn is_integer(&self) -> bool {
-        matches!(self, Self::Primary(Primary::Integer(_)))
+        matches!(self, Self::Primary(Primary::i64(_)))
     }
 
-    /// Returns true if the expression is a [`Primary::Integer`] raised to the power of -1.
+    /// Returns true if the expression is a [`Primary::i64`] raised to the power of -1.
     pub fn is_integer_recip(&self) -> bool {
         if let Self::Exp(base, exp) = self {
-            if matches!(&**base, Self::Primary(Primary::Integer(_))) {
-                if let Self::Primary(Primary::Integer(exp)) = &**exp {
+            if matches!(&**base, Self::Primary(Primary::i64(_))) {
+                if let Self::Primary(Primary::i64(exp)) = &**exp {
                     return exp == &-1;
                 }
             }
@@ -328,12 +327,12 @@ impl Expr {
         false
     }
 
-    /// If the expression is a [`Primary::Integer`] raised to the power of -1, returns a reference to
+    /// If the expression is a [`Primary::i64`] raised to the power of -1, returns a reference to
     /// the contained integer (the denominator of the fraction).
-    pub fn as_integer_recip(&self) -> Option<&Integer> {
+    pub fn as_integer_recip(&self) -> Option<&i64> {
         if let Self::Exp(base, exp) = self {
-            if matches!(&**base, Self::Primary(Primary::Integer(_))) {
-                if let Self::Primary(Primary::Integer(exp)) = &**exp {
+            if matches!(&**base, Self::Primary(Primary::i64(_))) {
+                if let Self::Primary(Primary::i64(exp)) = &**exp {
                     if exp == &-1 {
                         return base.as_integer();
                     }
@@ -344,12 +343,12 @@ impl Expr {
         None
     }
 
-    /// If the expression is a [`Primary::Integer`] raised to the power of -1, returns the contained
+    /// If the expression is a [`Primary::i64`] raised to the power of -1, returns the contained
     /// integer (the denominator of the fraction).
-    pub fn into_integer_recip(self) -> Option<Integer> {
+    pub fn into_integer_recip(self) -> Option<i64> {
         if let Self::Exp(base, exp) = self {
-            if matches!(*base, Self::Primary(Primary::Integer(_))) {
-                if let Self::Primary(Primary::Integer(exp)) = *exp {
+            if matches!(*base, Self::Primary(Primary::i64(_))) {
+                if let Self::Primary(Primary::i64(exp)) = *exp {
                     if exp == -1 {
                         return base.into_integer();
                     }
@@ -382,7 +381,7 @@ impl Expr {
         match self {
             Self::Add(mut terms) => {
                 if terms.is_empty() {
-                    Self::Primary(Primary::Integer(int(0)))
+                    Self::Primary(Primary::i64(int(0)))
                 } else if terms.len() == 1 {
                     terms.remove(0)
                 } else {
@@ -391,7 +390,7 @@ impl Expr {
             },
             Self::Mul(mut factors) => {
                 if factors.is_empty() {
-                    Self::Primary(Primary::Integer(int(1)))
+                    Self::Primary(Primary::i64(int(1)))
                 } else if factors.len() == 1 {
                     factors.remove(0)
                 } else {
@@ -407,8 +406,8 @@ impl Expr {
         Self::Exp(
             Box::new(self),
             Box::new(make_fraction(
-                Self::Primary(Primary::Integer(int(1))),
-                Self::Primary(Primary::Integer(int(2))),
+                Self::Primary(Primary::i64(int(1))),
+                Self::Primary(Primary::i64(int(2))),
             )),
         )
     }
@@ -511,9 +510,9 @@ impl From<AstExpr> for Expr {
     fn from(expr: AstExpr) -> Self {
         match expr {
             AstExpr::Literal(literal) => match literal {
-                Literal::Integer(int) => Self::Primary(Primary::Integer(int_from_str(&int.value))),
+                Literal::i64(int) => Self::Primary(Primary::i64(int_from_str(&int.value))),
                 Literal::Float(float) => Self::Primary(Primary::Float(float_from_str(&float.value))),
-                Literal::Radix(radix) => Self::Primary(Primary::Integer(from_str_radix(&radix.value, radix.base))),
+                Literal::Radix(radix) => Self::Primary(Primary::i64(from_str_radix(&radix.value, radix.base))),
                 Literal::Boolean(_) => todo!(),
                 Literal::Symbol(sym) => Self::Primary(Primary::Symbol(sym.name)),
                 Literal::Unit(_) => todo!(),
@@ -643,7 +642,7 @@ impl From<Expr> for AstExpr {
 
         match expr {
             Expr::Primary(primary) => match primary {
-                Primary::Integer(int) => AstExpr::Literal(Literal::Integer(LitInt {
+                Primary::i64(int) => AstExpr::Literal(Literal::i64(LitInt {
                     value: int.to_string(),
                     span: 0..0, // TODO: what to do about this?
                 })),
@@ -738,7 +737,7 @@ impl Add for Expr {
 impl AddAssign for Expr {
     fn add_assign(&mut self, rhs: Self) {
         match (self, rhs) {
-            (Self::Primary(Primary::Integer(lhs)), Self::Primary(Primary::Integer(rhs))) => {
+            (Self::Primary(Primary::i64(lhs)), Self::Primary(Primary::i64(rhs))) => {
                 *lhs += rhs;
             },
             (Self::Primary(Primary::Float(lhs)), Self::Primary(Primary::Float(rhs))) => {
@@ -798,7 +797,7 @@ impl Mul for Expr {
 impl MulAssign for Expr {
     fn mul_assign(&mut self, rhs: Self) {
         match (self, rhs) {
-            (Self::Primary(Primary::Integer(lhs)), Self::Primary(Primary::Integer(rhs))) => {
+            (Self::Primary(Primary::i64(lhs)), Self::Primary(Primary::i64(rhs))) => {
                 *lhs *= rhs;
             },
             (Self::Primary(Primary::Float(lhs)), Self::Primary(Primary::Float(rhs))) => {
@@ -836,9 +835,9 @@ impl Neg for Expr {
 
     fn neg(self) -> Self::Output {
         match self {
-            Self::Primary(Primary::Integer(int)) => Self::Primary(Primary::Integer(-int)),
+            Self::Primary(Primary::i64(int)) => Self::Primary(Primary::i64(-int)),
             Self::Primary(Primary::Float(float)) => Self::Primary(Primary::Float(-float)),
-            expr => Self::Primary(Primary::Integer(int(-1))) * expr,
+            expr => Self::Primary(Primary::i64(int(-1))) * expr,
         }
     }
 }
@@ -893,16 +892,16 @@ mod tests {
         // semantically correct
         assert_eq!(expr, Expr::Add(vec![
             // 6
-            Expr::Primary(Primary::Integer(int(6))),
+            Expr::Primary(Primary::i64(int(6))),
             // + 5x
             Expr::Mul(vec![
                 Expr::Primary(Primary::Symbol(String::from("x"))),
-                Expr::Primary(Primary::Integer(int(5))),
+                Expr::Primary(Primary::i64(int(5))),
             ]),
             // + x^2
             Expr::Exp(
                 Box::new(Expr::Primary(Primary::Symbol(String::from("x")))),
-                Box::new(Expr::Primary(Primary::Integer(int(2)))),
+                Box::new(Expr::Primary(Primary::i64(int(2)))),
             ),
         ]));
     }
@@ -914,19 +913,19 @@ mod tests {
             // y^-3
             Expr::Exp(
                 Box::new(Expr::Primary(Primary::Symbol(String::from("y")))),
-                Box::new(Expr::Primary(Primary::Integer(int(-3)))),
+                Box::new(Expr::Primary(Primary::i64(int(-3)))),
             ),
             // * x^2
             Expr::Exp(
                 Box::new(Expr::Primary(Primary::Symbol(String::from("x")))),
-                Box::new(Expr::Primary(Primary::Integer(int(2)))),
+                Box::new(Expr::Primary(Primary::i64(int(2)))),
             ),
             // * -2
-            Expr::Primary(Primary::Integer(int(-2))),
+            Expr::Primary(Primary::i64(int(-2))),
             // / 5
             Expr::Exp(
-                Box::new(Expr::Primary(Primary::Integer(int(5)))),
-                Box::new(Expr::Primary(Primary::Integer(int(-1)))),
+                Box::new(Expr::Primary(Primary::i64(int(5)))),
+                Box::new(Expr::Primary(Primary::i64(int(-1)))),
             ),
         ]));
     }
@@ -938,7 +937,7 @@ mod tests {
             // 3 * x
             Expr::Mul(vec![
                 Expr::Primary(Primary::Symbol(String::from("x"))),
-                Expr::Primary(Primary::Integer(int(3))),
+                Expr::Primary(Primary::i64(int(3))),
             ]),
             // + -1 * (x + t) * y
             Expr::Mul(vec![
@@ -947,7 +946,7 @@ mod tests {
                     Expr::Primary(Primary::Symbol(String::from("t"))),
                     Expr::Primary(Primary::Symbol(String::from("x"))),
                 ]),
-                Expr::Primary(Primary::Integer(int(-1))),
+                Expr::Primary(Primary::i64(int(-1))),
             ]),
             // + -1 * z * a^(1/5/6) * b
             Expr::Mul(vec![
@@ -955,19 +954,19 @@ mod tests {
                 Expr::Exp(
                     Box::new(Expr::Primary(Primary::Symbol(String::from("a")))),
                     Box::new(Expr::Mul(vec![
-                        Expr::Primary(Primary::Integer(int(1))),
+                        Expr::Primary(Primary::i64(int(1))),
                         Expr::Exp(
-                            Box::new(Expr::Primary(Primary::Integer(int(5)))),
-                            Box::new(Expr::Primary(Primary::Integer(int(-1)))),
+                            Box::new(Expr::Primary(Primary::i64(int(5)))),
+                            Box::new(Expr::Primary(Primary::i64(int(-1)))),
                         ),
                         Expr::Exp(
-                            Box::new(Expr::Primary(Primary::Integer(int(6)))),
-                            Box::new(Expr::Primary(Primary::Integer(int(-1)))),
+                            Box::new(Expr::Primary(Primary::i64(int(6)))),
+                            Box::new(Expr::Primary(Primary::i64(int(-1)))),
                         ),
                     ])),
                 ),
                 Expr::Primary(Primary::Symbol(String::from("z"))),
-                Expr::Primary(Primary::Integer(int(-1))),
+                Expr::Primary(Primary::i64(int(-1))),
             ]),
         ]));
     }
@@ -980,52 +979,52 @@ mod tests {
             Expr::Mul(vec![
                 Expr::Exp(
                     Box::new(Expr::Primary(Primary::Symbol(String::from("y")))),
-                    Box::new(Expr::Primary(Primary::Integer(int(2)))),
+                    Box::new(Expr::Primary(Primary::i64(int(2)))),
                 ),
                 Expr::Primary(Primary::Symbol(String::from("x"))),
-                Expr::Primary(Primary::Integer(int(4))),
+                Expr::Primary(Primary::i64(int(4))),
             ]),
             // + 2 * x^2 * y
             Expr::Mul(vec![
                 Expr::Primary(Primary::Symbol(String::from("y"))),
                 Expr::Exp(
                     Box::new(Expr::Primary(Primary::Symbol(String::from("x")))),
-                    Box::new(Expr::Primary(Primary::Integer(int(2)))),
+                    Box::new(Expr::Primary(Primary::i64(int(2)))),
                 ),
-                Expr::Primary(Primary::Integer(int(2))),
+                Expr::Primary(Primary::i64(int(2))),
             ]),
             // + 3 * x^2 * y
             Expr::Mul(vec![
                 Expr::Primary(Primary::Symbol(String::from("y"))),
                 Expr::Exp(
                     Box::new(Expr::Primary(Primary::Symbol(String::from("x")))),
-                    Box::new(Expr::Primary(Primary::Integer(int(2)))),
+                    Box::new(Expr::Primary(Primary::i64(int(2)))),
                 ),
-                Expr::Primary(Primary::Integer(int(3))),
+                Expr::Primary(Primary::i64(int(3))),
             ]),
             // + -1 * 16 * x * y
             Expr::Mul(vec![
                 Expr::Primary(Primary::Symbol(String::from("y"))),
                 Expr::Primary(Primary::Symbol(String::from("x"))),
-                Expr::Primary(Primary::Integer(int(16))),
-                Expr::Primary(Primary::Integer(int(-1))),
+                Expr::Primary(Primary::i64(int(16))),
+                Expr::Primary(Primary::i64(int(-1))),
             ]),
             // + -1 * 13 * x * y
             Expr::Mul(vec![
                 Expr::Primary(Primary::Symbol(String::from("y"))),
                 Expr::Primary(Primary::Symbol(String::from("x"))),
-                Expr::Primary(Primary::Integer(int(13))),
-                Expr::Primary(Primary::Integer(int(-1))),
+                Expr::Primary(Primary::i64(int(13))),
+                Expr::Primary(Primary::i64(int(-1))),
             ]),
             // + -1 * 11 * x * y^2
             Expr::Mul(vec![
                 Expr::Exp(
                     Box::new(Expr::Primary(Primary::Symbol(String::from("y")))),
-                    Box::new(Expr::Primary(Primary::Integer(int(2)))),
+                    Box::new(Expr::Primary(Primary::i64(int(2)))),
                 ),
                 Expr::Primary(Primary::Symbol(String::from("x"))),
-                Expr::Primary(Primary::Integer(int(11))),
-                Expr::Primary(Primary::Integer(int(-1))),
+                Expr::Primary(Primary::i64(int(11))),
+                Expr::Primary(Primary::i64(int(-1))),
             ]),
         ]));
     }

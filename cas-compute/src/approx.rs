@@ -1,9 +1,8 @@
-use rug::{Float, Integer, Rational};
 use std::cmp::Ordering;
 use super::primitive::float;
 
 /// Computes the [`Rational`] from the continued fraction form of a float.
-fn rational_from_continued_fraction(continued_fraction_form: &[Integer]) -> Rational {
+fn rational_from_continued_fraction(continued_fraction_form: &[i64]) -> Rational {
     let mut rational = Rational::new();
     for (i, integer) in continued_fraction_form.iter().rev().enumerate() {
         if i == 0 {

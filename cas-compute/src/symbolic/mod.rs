@@ -67,7 +67,7 @@
 //!
 //! // `x + x + x = 3x`
 //! assert_eq!(simplified, Expr::Mul(vec![
-//!     Expr::Primary(Primary::Integer(int(3))),
+//!     Expr::Primary(Primary::i64(int(3))),
 //!     Expr::Primary(Primary::Symbol("x".to_string())),
 //! ]));
 //! ```

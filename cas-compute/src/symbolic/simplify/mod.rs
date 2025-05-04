@@ -13,7 +13,7 @@
 //! [`simplify_with_steps`]. This is useful for debugging, and also for displaying the steps taken
 //! to the user.
 //!
-//! # Integers and floating-point numbers
+//! # i64s and floating-point numbers
 //!
 //! Expressions are allowed to contain both integers and floating-point numbers. The simplifier
 //! will attempt to keep expressions in the same number type as the input expression, but in the
@@ -44,7 +44,7 @@ pub fn default_complexity(expr: &Expr) -> usize {
         .map(|expr| match expr {
             Expr::Primary(primary) => {
                 match primary {
-                    Primary::Integer(num) => int(num.abs_ref())
+                    Primary::i64(num) => int(num.abs_ref())
                         .to_usize().unwrap(),
                     Primary::Float(num) => float(num.abs_ref())
                         .to_integer().unwrap()
@@ -193,7 +193,7 @@ mod tests {
         let simplified_expr = simplify_str("0+0*(3x+5b^2i)+0+(3a)");
         assert_eq!(simplified_expr, Expr::Mul(vec![
             Expr::Primary(Primary::Symbol(String::from("a"))),
-            Expr::Primary(Primary::Integer(int(3))),
+            Expr::Primary(Primary::i64(int(3))),
         ]));
     }
 
@@ -201,8 +201,8 @@ mod tests {
     fn add_fractions() {
         let simplified_expr = simplify_str("1/2 + 1/3 - 2 + 5/6");
         assert_eq!(simplified_expr, make_fraction(
-            Expr::Primary(Primary::Integer(int(-1))),
-            Expr::Primary(Primary::Integer(int(3))),
+            Expr::Primary(Primary::i64(int(-1))),
+            Expr::Primary(Primary::i64(int(3))),
         ));
     }
 
@@ -211,12 +211,12 @@ mod tests {
         let simplified_expr = simplify_str("pi/2 + 2 - 1/3 - 5pi/6");
         assert_eq!(simplified_expr, Expr::Add(vec![
             make_fraction(
-                Expr::Primary(Primary::Integer(int(5))),
-                Expr::Primary(Primary::Integer(int(3))),
+                Expr::Primary(Primary::i64(int(5))),
+                Expr::Primary(Primary::i64(int(3))),
             ),
             make_fraction(
                 -Expr::Primary(Primary::Symbol(String::from("pi"))),
-                Expr::Primary(Primary::Integer(int(3))),
+                Expr::Primary(Primary::i64(int(3))),
             ),
         ]));
     }
@@ -227,9 +227,9 @@ mod tests {
         assert_eq!(simplified_expr, Expr::Add(vec![
             Expr::Mul(vec![
                 Expr::Primary(Primary::Symbol(String::from("m"))),
-                Expr::Primary(Primary::Integer(int(-30))),
+                Expr::Primary(Primary::i64(int(-30))),
             ]),
-            Expr::Primary(Primary::Integer(int(33))),
+            Expr::Primary(Primary::i64(int(33))),
         ]));
     }
 
@@ -242,28 +242,28 @@ mod tests {
             Expr::Mul(vec![
                 Expr::Exp(
                     Box::new(Expr::Primary(Primary::Symbol(String::from("x")))),
-                    Box::new(Expr::Primary(Primary::Integer(int(3)))),
+                    Box::new(Expr::Primary(Primary::i64(int(3)))),
                 ),
                 Expr::Primary(Primary::Symbol(String::from("y"))),
             ]),
             Expr::Mul(vec![
-                Expr::Primary(Primary::Integer(int(20))),
+                Expr::Primary(Primary::i64(int(20))),
                 Expr::Exp(
                     Box::new(Expr::Primary(Primary::Symbol(String::from("y")))),
-                    Box::new(Expr::Primary(Primary::Integer(int(2)))),
+                    Box::new(Expr::Primary(Primary::i64(int(2)))),
                 ),
                 Expr::Primary(Primary::Symbol(String::from("x"))),
             ]),
             Expr::Mul(vec![
-                Expr::Primary(Primary::Integer(int(5))),
+                Expr::Primary(Primary::i64(int(5))),
                 Expr::Exp(
                     Box::new(Expr::Primary(Primary::Symbol(String::from("x")))),
-                    Box::new(Expr::Primary(Primary::Integer(int(2)))),
+                    Box::new(Expr::Primary(Primary::i64(int(2)))),
                 ),
                 Expr::Primary(Primary::Symbol(String::from("y"))),
             ]),
             Expr::Mul(vec![
-                Expr::Primary(Primary::Integer(int(-27))),
+                Expr::Primary(Primary::i64(int(-27))),
                 Expr::Primary(Primary::Symbol(String::from("x"))),
                 Expr::Primary(Primary::Symbol(String::from("y"))),
             ]),
@@ -274,7 +274,7 @@ mod tests {
     fn combine_like_terms_3() {
         let simplified_expr = simplify_str("x + 2x");
         assert_eq!(simplified_expr, Expr::Mul(vec![
-            Expr::Primary(Primary::Integer(int(3))),
+            Expr::Primary(Primary::i64(int(3))),
             Expr::Primary(Primary::Symbol(String::from("x"))),
         ]));
     }
@@ -296,12 +296,12 @@ mod tests {
         let simplified_expr = simplify_str("15x/4 + 1.4x - -0.13449 + 56x / (5x)");
         assert_eq!(simplified_expr, Expr::Add(vec![
             make_fraction(
-                Expr::Primary(Primary::Integer(int(103))),
-                Expr::Primary(Primary::Integer(int(20))),
+                Expr::Primary(Primary::i64(int(103))),
+                Expr::Primary(Primary::i64(int(20))),
             ) * Expr::Primary(Primary::Symbol(String::from("x"))),
             make_fraction(
-                Expr::Primary(Primary::Integer(int(1133449))),
-                Expr::Primary(Primary::Integer(int(100000))),
+                Expr::Primary(Primary::i64(int(1133449))),
+                Expr::Primary(Primary::i64(int(100000))),
             ),
         ]));
     }
@@ -313,8 +313,8 @@ mod tests {
         let simplified_expr = simplify_str("11.75y - x/2 * 14 + -6.24y + 37/6x");
         assert_eq!(simplified_expr, Expr::Add(vec![
             make_fraction(
-                Expr::Primary(Primary::Integer(int(-5))),
-                Expr::Primary(Primary::Integer(int(6))),
+                Expr::Primary(Primary::i64(int(-5))),
+                Expr::Primary(Primary::i64(int(6))),
             ) * Expr::Primary(Primary::Symbol(String::from("x"))),
             Expr::Mul(vec![
                 // coefficients of y-terms were specially chosen to avoid floating-point errors
@@ -328,14 +328,14 @@ mod tests {
     #[test]
     fn multiply_rules() {
         let simplified_expr = simplify_str("0*(3x+5b^2i)*1*(3a)");
-        assert_eq!(simplified_expr, Expr::Primary(Primary::Integer(int(0))));
+        assert_eq!(simplified_expr, Expr::Primary(Primary::i64(int(0))));
     }
 
     #[test]
     fn multiply_rules_2() {
         // also tests add_zero
         let simplified_expr = simplify_str("1*3*1*1*1*(1+(x^2+5x+6)*0)*1*1");
-        assert_eq!(simplified_expr, Expr::Primary(Primary::Integer(int(3))));
+        assert_eq!(simplified_expr, Expr::Primary(Primary::i64(int(3))));
     }
 
     #[test]
@@ -344,19 +344,19 @@ mod tests {
         assert_eq!(simplified_expr, Expr::Mul(vec![
             Expr::Exp(
                 Box::new(Expr::Primary(Primary::Symbol("d".to_string()))),
-                Box::new(Expr::Primary(Primary::Integer(int(4)))),
+                Box::new(Expr::Primary(Primary::i64(int(4)))),
             ),
             Expr::Exp(
                 Box::new(Expr::Primary(Primary::Symbol("b".to_string()))),
-                Box::new(Expr::Primary(Primary::Integer(int(5)))),
+                Box::new(Expr::Primary(Primary::i64(int(5)))),
             ),
             Expr::Exp(
                 Box::new(Expr::Primary(Primary::Symbol("a".to_string()))),
-                Box::new(Expr::Primary(Primary::Integer(int(6)))),
+                Box::new(Expr::Primary(Primary::i64(int(6)))),
             ),
             Expr::Exp(
                 Box::new(Expr::Primary(Primary::Symbol("c".to_string()))),
-                Box::new(Expr::Primary(Primary::Integer(int(2)))),
+                Box::new(Expr::Primary(Primary::i64(int(2)))),
             ),
         ]));
     }
@@ -369,16 +369,16 @@ mod tests {
                 Box::new(Expr::Add(vec![
                     Expr::Primary(Primary::Symbol("a".to_string())),
                     Expr::Primary(Primary::Symbol("b".to_string())),
-                    Expr::Primary(Primary::Integer(int(1))),
+                    Expr::Primary(Primary::i64(int(1))),
                 ])),
-                Box::new(Expr::Primary(Primary::Integer(int(2)))),
+                Box::new(Expr::Primary(Primary::i64(int(2)))),
             ),
             Expr::Exp(
                 Box::new(Expr::Add(vec![
                     Expr::Primary(Primary::Symbol("a".to_string())),
                     Expr::Primary(Primary::Symbol("b".to_string())),
                 ])),
-                Box::new(Expr::Primary(Primary::Integer(int(2)))),
+                Box::new(Expr::Primary(Primary::i64(int(2)))),
             ),
         ]));
     }
@@ -386,13 +386,13 @@ mod tests {
     #[test]
     fn simple_combine_like_factors() {
         let simplified_expr = simplify_str("(a+b)/(a+b)");
-        assert_eq!(simplified_expr, Expr::Primary(Primary::Integer(int(1))));
+        assert_eq!(simplified_expr, Expr::Primary(Primary::i64(int(1))));
     }
 
     #[test]
     fn combine_like_factors_mul_numbers() {
         let simplified_expr = simplify_str("-1 * -1 * 2 * 2");
-        assert_eq!(simplified_expr, Expr::Primary(Primary::Integer(int(4))));
+        assert_eq!(simplified_expr, Expr::Primary(Primary::i64(int(4))));
     }
 
     #[test]
@@ -407,19 +407,19 @@ mod tests {
         assert_eq!(simplified_expr, Expr::Mul(vec![
             Expr::Exp(
                 Box::new(Expr::Primary(Primary::Symbol("r".to_string()))),
-                Box::new(Expr::Primary(Primary::Integer(int(5)))),
+                Box::new(Expr::Primary(Primary::i64(int(5)))),
             ),
             Expr::Exp(
                 Box::new(Expr::Primary(Primary::Symbol("q".to_string()))),
-                Box::new(Expr::Primary(Primary::Integer(int(8)))),
+                Box::new(Expr::Primary(Primary::i64(int(8)))),
             ),
             Expr::Exp(
                 Box::new(Expr::Primary(Primary::Symbol("p".to_string()))),
-                Box::new(Expr::Primary(Primary::Integer(int(-3)))),
+                Box::new(Expr::Primary(Primary::i64(int(-3)))),
             ),
             Expr::Exp(
-                Box::new(Expr::Primary(Primary::Integer(int(4)))),
-                Box::new(Expr::Primary(Primary::Integer(int(-1)))),
+                Box::new(Expr::Primary(Primary::i64(int(4)))),
+                Box::new(Expr::Primary(Primary::i64(int(-1)))),
             ),
         ]));
     }
@@ -435,22 +435,22 @@ mod tests {
             // the result is a denominator that is not rationalized
             // TODO: rationalize the denominator
             Expr::Exp(
-                Box::new(Expr::Primary(Primary::Integer(int(2)))),
+                Box::new(Expr::Primary(Primary::i64(int(2)))),
                 Box::new(make_fraction(
-                    Expr::Primary(Primary::Integer(int(-3))),
-                    Expr::Primary(Primary::Integer(int(2))),
+                    Expr::Primary(Primary::i64(int(-3))),
+                    Expr::Primary(Primary::i64(int(2))),
                 )),
             ),
             // sqrt(6)/4
             make_fraction(
                 Expr::Exp(
-                    Box::new(Expr::Primary(Primary::Integer(int(6)))),
+                    Box::new(Expr::Primary(Primary::i64(int(6)))),
                     Box::new(Expr::Exp(
-                        Box::new(Expr::Primary(Primary::Integer(int(2)))),
-                        Box::new(Expr::Primary(Primary::Integer(int(-1)))),
+                        Box::new(Expr::Primary(Primary::i64(int(2)))),
+                        Box::new(Expr::Primary(Primary::i64(int(-1)))),
                     )),
                 ),
-                Expr::Primary(Primary::Integer(int(4))),
+                Expr::Primary(Primary::i64(int(4))),
             ),
         ]));
     }
@@ -464,7 +464,7 @@ mod tests {
                 Expr::Primary(Primary::Symbol("y".to_string())),
                 Expr::Primary(Primary::Symbol("x".to_string())),
             ),
-            Expr::Primary(Primary::Integer(int(2))),
+            Expr::Primary(Primary::i64(int(2))),
         ]));
         assert!(steps.contains(&Step::DistributiveProperty));
     }
@@ -476,11 +476,11 @@ mod tests {
         assert_eq!(simplified_expr, Expr::Add(vec![
             Expr::Exp(
                 Box::new(Expr::Primary(Primary::Symbol("x".to_string()))),
-                Box::new(Expr::Primary(Primary::Integer(int(2)))),
+                Box::new(Expr::Primary(Primary::i64(int(2)))),
             ),
             Expr::Exp(
                 Box::new(Expr::Primary(Primary::Symbol("x".to_string()))),
-                Box::new(Expr::Primary(Primary::Integer(int(3)))),
+                Box::new(Expr::Primary(Primary::i64(int(3)))),
             ),
             Expr::Primary(Primary::Symbol("y".to_string())),
         ]));
@@ -490,13 +490,13 @@ mod tests {
     #[test]
     fn power_rules() {
         let simplified_expr = simplify_str("(1^0)^(3x+5b^2i)^1^(3a)");
-        assert_eq!(simplified_expr, Expr::Primary(Primary::Integer(int(1))));
+        assert_eq!(simplified_expr, Expr::Primary(Primary::i64(int(1))));
     }
 
     #[test]
     fn power_rules_2() {
         let simplified_expr = simplify_str("(0^1)^0");
-        assert_eq!(simplified_expr, Expr::Primary(Primary::Integer(int(1))));
+        assert_eq!(simplified_expr, Expr::Primary(Primary::i64(int(1))));
     }
 
     #[test]
@@ -514,7 +514,7 @@ mod tests {
     #[test]
     fn power_rule_steps() {
         let (simplified_expr, steps) = simplify_str_steps("(1^0)^(3x+5b^2i)^1^(3a)");
-        assert_eq!(simplified_expr, Expr::Primary(Primary::Integer(int(1))));
+        assert_eq!(simplified_expr, Expr::Primary(Primary::i64(int(1))));
         assert_eq!(steps, vec![
             Step::PowerPower,
             Step::PowerOneLeft,
@@ -526,17 +526,17 @@ mod tests {
         let simplified_expr = simplify_str("i^372 + i^145 - i^215 - i^807");
         assert_eq!(simplified_expr, Expr::Add(vec![
             Expr::Mul(vec![
-                Expr::Primary(Primary::Integer(int(3))),
+                Expr::Primary(Primary::i64(int(3))),
                 Expr::Primary(Primary::Symbol("i".to_string())),
             ]),
-            Expr::Primary(Primary::Integer(int(1))),
+            Expr::Primary(Primary::i64(int(1))),
         ]));
     }
 
     #[test]
     fn trigonometric_sine() {
         let simplified_expr = simplify_str("sin(pi/6 + pi/4 + pi/2 + pi/12)");
-        assert_eq!(simplified_expr, Expr::Primary(Primary::Integer(int(0))));
+        assert_eq!(simplified_expr, Expr::Primary(Primary::i64(int(0))));
     }
 
     #[test]
@@ -545,10 +545,10 @@ mod tests {
 
         // -sqrt(2)/2 = -2^(1/2)/2 = -2^(-1/2)
         assert_eq!(simplified_expr, -Expr::Exp(
-            Box::new(Expr::Primary(Primary::Integer(int(2)))),
+            Box::new(Expr::Primary(Primary::i64(int(2)))),
             Box::new(make_fraction(
-                Expr::Primary(Primary::Integer(int(-1))),
-                Expr::Primary(Primary::Integer(int(2))),
+                Expr::Primary(Primary::i64(int(-1))),
+                Expr::Primary(Primary::i64(int(2))),
             )),
         ));
     }
@@ -578,7 +578,7 @@ mod tests {
         for (i, input) in inputs.into_iter().enumerate() {
             assert_eq!(
                 simplify_str(input),
-                Expr::Primary(Primary::Integer(int(1))),
+                Expr::Primary(Primary::i64(int(1))),
                 "failed on input #{}",
                 i,
             );
@@ -610,7 +610,7 @@ mod tests {
         for (i, input) in inputs.into_iter().enumerate() {
             assert_eq!(
                 simplify_str(input),
-                Expr::Primary(Primary::Integer(int(1))),
+                Expr::Primary(Primary::i64(int(1))),
                 "failed on input #{}",
                 i,
             );
@@ -642,7 +642,7 @@ mod tests {
         for (i, input) in inputs.into_iter().enumerate() {
             assert_eq!(
                 simplify_str(input),
-                Expr::Primary(Primary::Integer(int(1))),
+                Expr::Primary(Primary::i64(int(1))),
                 "failed on input #{}",
                 i,
             );
@@ -653,17 +653,17 @@ mod tests {
     fn root_rules() {
         let simplified_expr = simplify_str("sqrt(878*192*a^2*b^3*a^145)");
         assert_eq!(simplified_expr, Expr::Mul(vec![
-            Expr::Primary(Primary::Integer(int(8))),
+            Expr::Primary(Primary::i64(int(8))),
             Expr::Exp(
                 Box::new(Expr::Primary(Primary::Symbol("a".to_string()))),
-                Box::new(Expr::Primary(Primary::Integer(int(73)))),
+                Box::new(Expr::Primary(Primary::i64(int(73)))),
             ),
             Expr::Primary(Primary::Symbol("b".to_string())),
             Expr::Primary(Primary::Call(
                 "sqrt".to_string(),
                 vec![
                     Expr::Mul(vec![
-                        Expr::Primary(Primary::Integer(int(2634))),
+                        Expr::Primary(Primary::i64(int(2634))),
                         Expr::Primary(Primary::Symbol("a".to_string())),
                         Expr::Primary(Primary::Symbol("b".to_string())),
                     ]),
@@ -675,6 +675,6 @@ mod tests {
     #[test]
     fn expand_and_reduce() {
         let simplified_expr = simplify_str("(x + 1) * (x - 2) - (x - 1) * x");
-        assert_eq!(simplified_expr, Expr::Primary(Primary::Integer(int(-2))));
+        assert_eq!(simplified_expr, Expr::Primary(Primary::i64(int(-2))));
     }
 }

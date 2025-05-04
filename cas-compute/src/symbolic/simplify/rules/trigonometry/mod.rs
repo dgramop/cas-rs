@@ -22,7 +22,7 @@ fn simplify_trig(arg: Expr, table: &HashMap<&Expr, table::TrigOut>) -> Option<Ex
     // example: compute sin(pi/6)
     // compute normalized fraction: (pi/6) / (2pi) = 1/12
     let mut expr = {
-        let two_pi = Expr::Primary(Primary::Integer(int(2))) * Expr::Primary(Primary::Symbol("pi".to_string()));
+        let two_pi = Expr::Primary(Primary::i64(int(2))) * Expr::Primary(Primary::Symbol("pi".to_string()));
         let raw = make_fraction(arg, two_pi);
         simplify::simplify(&raw)
     };
@@ -33,9 +33,9 @@ fn simplify_trig(arg: Expr, table: &HashMap<&Expr, table::TrigOut>) -> Option<Ex
     // turn the fraction into a normalized `Expr`
     let fraction = {
         if numerator.is_zero() {
-            Expr::Primary(Primary::Integer(int(0)))
+            Expr::Primary(Primary::i64(int(0)))
         } else if denominator == 1 {
-            Expr::Primary(Primary::Integer(numerator))
+            Expr::Primary(Primary::i64(numerator))
         } else {
             // the fraction is the normalized angle from 0 to 1, but can be outside that range
             // get the fraction in the range 0 to 1 by computing `numerator % denominator`
@@ -43,8 +43,8 @@ fn simplify_trig(arg: Expr, table: &HashMap<&Expr, table::TrigOut>) -> Option<Ex
             // positive modulo (to handle negative numerators)
             let numerator = (numerator % &denominator + &denominator) % &denominator;
             make_fraction(
-                Expr::Primary(Primary::Integer(numerator)),
-                Expr::Primary(Primary::Integer(denominator)),
+                Expr::Primary(Primary::i64(numerator)),
+                Expr::Primary(Primary::i64(denominator)),
             )
         }
     };

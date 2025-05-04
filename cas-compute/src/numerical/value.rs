@@ -1,6 +1,4 @@
 use crate::consts::PI;
-use crate::primitive::{complex, float};
-use rug::{Complex, Float, Integer};
 use std::fmt::{Display, Formatter};
 use super::fmt::{FormatOptions, ValueFormatter};
 
@@ -15,7 +13,7 @@ pub enum Value {
     Float(Float),
 
     /// An integer value.
-    Integer(Integer),
+    i64(i64),
 
     /// A complex number value.
     Complex(Complex),
@@ -46,7 +44,7 @@ impl Value {
     pub fn typename(&self) -> &'static str {
         match self {
             Value::Float(_) => "Float",
-            Value::Integer(_) => "Integer",
+            Value::i64(_) => "i64",
             Value::Complex(_) => "Complex",
             Value::Boolean(_) => "Boolean",
             Value::Unit => "Unit",
@@ -69,7 +67,7 @@ impl Value {
     /// [`Value::Float`] instead.
     pub fn coerce_float(self) -> Self {
         match self {
-            Value::Integer(n) => Value::Float(float(n)),
+            Value::i64(n) => Value::Float(float(n)),
             Value::Complex(c) if c.imag().is_zero() => Value::Float(c.into_real_imag().0),
             _ => self,
         }
@@ -84,9 +82,9 @@ impl Value {
     ///  fractional part.
     pub fn coerce_integer(self) -> Self {
         match self {
-            Value::Float(n) if n.is_integer() => Value::Integer(n.to_integer().unwrap()),
+            Value::Float(n) if n.is_integer() => Value::i64(n.to_integer().unwrap()),
             Value::Complex(c) if c.imag().is_zero() && c.real().is_integer() => {
-                Value::Integer(c.into_real_imag().0.to_integer().unwrap())
+                Value::i64(c.into_real_imag().0.to_integer().unwrap())
             }
             _ => self,
         }
@@ -105,11 +103,11 @@ impl Value {
     /// returned as-is.
     pub fn coerce_number(self) -> Self {
         match self {
-            Value::Float(n) if n.is_integer() => Value::Integer(n.to_integer().unwrap()),
+            Value::Float(n) if n.is_integer() => Value::i64(n.to_integer().unwrap()),
             Value::Complex(c) if c.imag().is_zero() => {
                 let (real, _) = c.into_real_imag();
                 if real.is_integer() {
-                    Value::Integer(real.to_integer().unwrap())
+                    Value::i64(real.to_integer().unwrap())
                 } else {
                     Value::Float(real)
                 }
@@ -122,7 +120,7 @@ impl Value {
     pub fn coerce_complex(self) -> Self {
         match self {
             Value::Float(n) => Value::Complex(complex(n)),
-            Value::Integer(n) => Value::Complex(complex(n)),
+            Value::i64(n) => Value::Complex(complex(n)),
             _ => self,
         }
     }
@@ -133,7 +131,7 @@ impl Value {
         let convert = |n: Float| n * 180.0 / &*PI;
         match self {
             Value::Float(n) => Value::Float(convert(n)),
-            Value::Integer(n) => Value::Float(convert(float(n))),
+            Value::i64(n) => Value::Float(convert(float(n))),
             Value::Complex(c) => Value::Complex({
                 let (real, imag) = c.into_real_imag();
                 complex((convert(real), convert(imag)))
@@ -148,7 +146,7 @@ impl Value {
         let convert = |n: Float| n * &*PI / 180.0;
         match self {
             Value::Float(n) => Value::Float(convert(n)),
-            Value::Integer(n) => Value::Float(convert(float(n))),
+            Value::i64(n) => Value::Float(convert(float(n))),
             Value::Complex(c) => Value::Complex({
                 let (real, imag) = c.into_real_imag();
                 complex((convert(real), convert(imag)))
@@ -161,7 +159,7 @@ impl Value {
     pub fn is_real(&self) -> bool {
         match self {
             Value::Float(_) => true,
-            Value::Integer(_) => true,
+            Value::i64(_) => true,
             Value::Complex(c) => c.imag().is_zero(),
             _ => false,
         }
@@ -171,7 +169,7 @@ impl Value {
     pub fn is_integer(&self) -> bool {
         match self {
             Value::Float(n) => n.is_integer(),
-            Value::Integer(_) => true,
+            Value::i64(_) => true,
             Value::Complex(c) => c.imag().is_zero() && c.real().is_integer(),
             _ => false,
         }
@@ -179,7 +177,7 @@ impl Value {
 
     /// Returns true if this value is a complex number, or can be coerced to one.
     pub fn is_complex(&self) -> bool {
-        matches!(self, Value::Complex(_) | Value::Float(_) | Value::Integer(_))
+        matches!(self, Value::Complex(_) | Value::Float(_) | Value::i64(_))
     }
 
     /// Returns true if this value is a boolean.
@@ -196,7 +194,7 @@ impl Value {
     pub fn is_truthy(&self) -> bool {
         match self {
             Value::Float(n) => !n.is_zero(),
-            Value::Integer(n) => !n.is_zero(),
+            Value::i64(n) => !n.is_zero(),
             Value::Complex(c) => !c.is_zero(),
             Value::Boolean(b) => *b,
             Value::Unit => false,
@@ -227,13 +225,13 @@ impl From<Float> for Value {
 
 impl From<i64> for Value {
     fn from(n: i64) -> Self {
-        Value::Integer(Integer::from(n))
+        Value::i64(i64::from(n))
     }
 }
 
-impl From<Integer> for Value {
-    fn from(n: Integer) -> Self {
-        Value::Integer(n)
+impl From<i64> for Value {
+    fn from(n: i64) -> Self {
+        Value::i64(n)
     }
 }
 

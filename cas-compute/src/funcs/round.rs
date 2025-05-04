@@ -1,8 +1,6 @@
 //! Rounding functions.
 
 use cas_attrs::builtin;
-use crate::primitive::{complex, float};
-use rug::{ops::Pow, Complex, Float, Integer};
 
 /// Build a rounding function.
 macro_rules! build_rounding {
@@ -34,8 +32,8 @@ pub struct Siground;
 
 #[cfg_attr(feature = "numerical", builtin)]
 impl Siground {
-    pub fn eval_static(n: Complex, d: Integer) -> Complex {
-        fn inner(n: Float, d: &Integer) -> Float {
+    pub fn eval_static(n: Complex, d: i64) -> Complex {
+        fn inner(n: Float, d: &i64) -> Float {
             if n.is_zero() {
                 return n;
             }

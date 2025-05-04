@@ -1,7 +1,6 @@
 //! General trigonometric and hyperbolic trigonometric functions.
 
 use cas_attrs::builtin;
-use rug::{Complex, Float};
 
 /// Build a trigonometric function that takes in a single radian input argument.
 macro_rules! build_radian_input {

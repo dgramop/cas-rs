@@ -13,7 +13,7 @@ use crate::symbolic::{
 pub fn multiply_zero(expr: &Expr, step_collector: &mut dyn StepCollector<Step>) -> Option<Expr> {
     let opt = do_multiply(expr, |factors| {
         if factors.iter().any(|factor| factor.as_integer().map(|n| n.is_zero()).unwrap_or(false)) {
-            Some(Expr::Primary(Primary::Integer(int(0))))
+            Some(Expr::Primary(Primary::i64(int(0))))
         } else {
             None
         }
@@ -57,7 +57,7 @@ pub fn reduce_numerical_fraction(expr: &Expr, step_collector: &mut dyn StepColle
     let opt = do_multiply(expr, |factors| {
         let mut new_factors = factors.to_vec();
 
-        // extract a fraction, a Integer and a Integer^-1
+        // extract a fraction, a i64 and a i64^-1
         let (numerator, denominator) = extract_integer_fraction(&mut new_factors, false, false)?;
 
         // reduce the fraction
@@ -68,8 +68,8 @@ pub fn reduce_numerical_fraction(expr: &Expr, step_collector: &mut dyn StepColle
 
         // insert the reduced fraction back into the factors
         Some(Expr::Mul(new_factors) * make_fraction(
-            Expr::Primary(Primary::Integer(numerator / &gcd)),
-            Expr::Primary(Primary::Integer(denominator / &gcd)),
+            Expr::Primary(Primary::i64(numerator / &gcd)),
+            Expr::Primary(Primary::i64(denominator / &gcd)),
         ))
     })?;
 
@@ -95,7 +95,7 @@ pub fn combine_like_factors(expr: &Expr, step_collector: &mut dyn StepCollector<
         fn get_exp(expr: &Expr) -> (Expr, Expr) {
             match expr {
                 Expr::Exp(lhs, rhs) => (*lhs.clone(), *rhs.clone()),
-                expr => (expr.clone(), Expr::Primary(Primary::Integer(int(1)))),
+                expr => (expr.clone(), Expr::Primary(Primary::i64(int(1)))),
             }
         }
 

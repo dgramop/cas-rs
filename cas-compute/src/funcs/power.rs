@@ -3,7 +3,6 @@
 use cas_attrs::builtin;
 use crate::consts::{I, TAU, TEN};
 use crate::primitive::{complex, float};
-use rug::{ops::Pow as _, Complex, Float};
 
 /// Builds a function whose `rug` implementation has the same name as the given function.
 macro_rules! simple {

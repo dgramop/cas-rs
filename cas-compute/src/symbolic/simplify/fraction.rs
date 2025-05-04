@@ -1,9 +1,7 @@
 //! Tools to help manipulate fractions.
 
 use crate::approx::approximate_rational;
-use crate::primitive::int;
 use crate::symbolic::expr::{Expr, Primary};
-use rug::Integer;
 
 /// Create an [`Expr`] representing a fraction with the given numerator and denominator.
 ///
@@ -13,15 +11,15 @@ pub(crate) fn make_fraction(numerator: Expr, denominator: Expr) -> Expr {
     numerator *
         Expr::Exp(
             Box::new(denominator),
-            Box::new(Expr::Primary(Primary::Integer(int(-1)))),
+            Box::new(Expr::Primary(Primary::i64(int(-1)))),
         )
 }
 
 /// Extracts a numerical fraction from the factors of an [`Expr::Mul`].
 ///
 /// All [`Expr`]s in this library are represented in some canonical form. Fractions are represented
-/// as an [`Expr::Mul`] containing a [`Primary::Integer`], and an [`Expr::Exp`], where the base is a
-/// [`Primary::Integer`] and the exponent is `-1`.
+/// as an [`Expr::Mul`] containing a [`Primary::i64`], and an [`Expr::Exp`], where the base is a
+/// [`Primary::i64`] and the exponent is `-1`.
 ///
 /// This function finds two integer factors that match this pattern, removes them, and returns the
 /// numerator and denominator as floats. This is a very specific definition of a fraction; this
@@ -29,7 +27,7 @@ pub(crate) fn make_fraction(numerator: Expr, denominator: Expr) -> Expr {
 /// the `numerator_optional` and / or `denominator_optional` arguments are set to `true`.
 ///
 /// For example, when `numerator_optional` is `true`, the function will return an implied 1 as the
-/// numerator if it does not find a [`Primary::Integer`] in the factors. When
+/// numerator if it does not find a [`Primary::i64`] in the factors. When
 /// `denominator_optional` is `true`, the function will return an implied 1 as the denominator if
 /// it does not find a valid [`Expr::Exp`] in the factors.
 ///
@@ -39,7 +37,7 @@ pub(crate) fn extract_integer_fraction(
     factors: &mut Vec<Expr>,
     numerator_optional: bool,
     denominator_optional: bool,
-) -> Option<(Integer, Integer)> {
+) -> Option<(i64, i64)> {
     let mut idx = 0;
     let mut numerator = None;
     let mut denominator = None;
@@ -119,36 +117,36 @@ pub(crate) fn extract_fractional(factors: &mut Vec<Expr>) -> Option<Expr> {
 }
 
 /// A more aggressive version of [`extract_explicit_frac`] that extracts numerical fractions from
-/// any kind of expression, replacing the original expression with a [`Primary::Integer`]
+/// any kind of expression, replacing the original expression with a [`Primary::i64`]
 /// containing the number 1.
 ///
 /// [`Primary::Float`]s are also extracted with a rational approximation of the float.
 ///
 /// Fractions are extracted as follows:
 ///
-/// - [`Expr::Primary(Primary::Integer(int))`] -> `int / 1`
+/// - [`Expr::Primary(Primary::i64(int))`] -> `int / 1`
 /// - [`Expr::Primary(Primary::Float(float))`] -> rational approximation of `float`
 /// - [`Expr::Mul(factors)`] -> `numerator / denominator`
-///   * `numerator` is the first [`Expr::Primary(Primary::Integer(num))`] found in `factors`
+///   * `numerator` is the first [`Expr::Primary(Primary::i64(num))`] found in `factors`
 ///   * `denominator` is the first [`Expr::Exp`] found in `factors`, where the base is a
-///   [`Primary::Integer`] and the exponent is `-1`; if no such expression is found, `denominator`
+///   [`Primary::i64`] and the exponent is `-1`; if no such expression is found, `denominator`
 ///   is `1`
 /// - [`Expr::Exp(lhs, rhs)`] -> `1 / lhs`
-///   * `lhs` must be a [`Primary::Integer`]
-pub(crate) fn extract_explicit_frac(expr: &mut Expr) -> Option<(Integer, Integer)> {
+///   * `lhs` must be a [`Primary::i64`]
+pub(crate) fn extract_explicit_frac(expr: &mut Expr) -> Option<(i64, i64)> {
     match expr {
-        Expr::Primary(Primary::Integer(num)) => {
+        Expr::Primary(Primary::i64(num)) => {
             Some((std::mem::replace(num, int(1)), int(1)))
         },
         Expr::Primary(Primary::Float(num)) => {
             let rational = approximate_rational(num);
-            *expr = Expr::Primary(Primary::Integer(int(1)));
+            *expr = Expr::Primary(Primary::i64(int(1)));
             Some(rational.into_numer_denom())
         },
         Expr::Mul(factors) => extract_integer_fraction(factors, false, true),
         Expr::Exp(..) => {
             if expr.is_integer_recip() {
-                let denominator = std::mem::replace(expr, Expr::Primary(Primary::Integer(int(1))))
+                let denominator = std::mem::replace(expr, Expr::Primary(Primary::i64(int(1))))
                     .into_integer_recip()
                     .unwrap();
                 Some((int(1), denominator))

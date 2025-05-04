@@ -3,10 +3,8 @@
 use cas_attrs::builtin;
 use crate::consts::TAU;
 use crate::numerical::value::Value;
-use crate::primitive::{complex, float_from_str, float, int};
 use once_cell::sync::Lazy;
 use rand::Rng;
-use rug::{integer::Order, ops::Pow, rand::RandState, Complex, Float, Integer};
 
 /// Returns the absolute value.
 #[derive(Debug)]
@@ -24,7 +22,7 @@ impl Abs {
 /// For each type, the following values are considered "truthy":
 ///
 /// - `Float`: any value except `0.0` and `NaN`
-/// - `Integer`: any value except `0`
+/// - `i64`: any value except `0`
 /// - `Complex`: any value except `0.0 + 0.0i` and `NaN + NaNi`
 /// - `Bool`: `true`
 /// - `Unit`: never
@@ -45,7 +43,7 @@ pub struct Rand;
 #[cfg_attr(feature = "numerical", builtin)]
 impl Rand {
     pub fn eval_static() -> Float {
-        let mut seed = Integer::new();
+        let mut seed = i64::new();
         let mut digits = [0u128; 2]; // 256 bits
         rand::thread_rng().fill(&mut digits);
         seed.assign_digits(&digits, Order::Lsf);
@@ -58,7 +56,7 @@ impl Rand {
 
 /// Computes a partial factorial of an integer from `n` to `k`, where `k` is exclusive (i.e. `n * (n
 /// - 1) * ... * (k + 1)`).
-pub fn partial_factorial(mut n: Integer, k: Integer) -> Integer {
+pub fn partial_factorial(mut n: i64, k: i64) -> i64 {
     let mut result = int(1);
     while n > k {
         result *= &n;
@@ -82,7 +80,7 @@ impl Factorial {
             // if `n` fits within `u32`, we can use `rug`'s `factorial` method, which uses a
             // much more efficient algorithm than naive multiplication
             if let Some(n) = n_int.to_u16() {
-                Value::Integer(int(Integer::factorial(u32::from(n))))
+                Value::i64(int(i64::factorial(u32::from(n))))
             } else {
                 // otherwise, there really isn't a good way to compute the factorial fast, so we'll
                 // just use the gamma function
@@ -196,7 +194,7 @@ pub struct Gcf;
 
 #[cfg_attr(feature = "numerical", builtin)]
 impl Gcf {
-    pub fn eval_static(a: Integer, b: Integer) -> Integer {
+    pub fn eval_static(a: i64, b: i64) -> i64 {
         a.gcd(&b)
     }
 }
@@ -207,7 +205,7 @@ pub struct Lcm;
 
 #[cfg_attr(feature = "numerical", builtin)]
 impl Lcm {
-    pub fn eval_static(a: Integer, b: Integer) -> Integer {
+    pub fn eval_static(a: i64, b: i64) -> i64 {
         a.lcm(&b)
     }
 }
@@ -233,7 +231,7 @@ pub struct Size;
 
 #[cfg_attr(feature = "numerical", builtin)]
 impl Size {
-    pub fn eval_static(v: Integer) -> Integer {
+    pub fn eval_static(v: i64) -> i64 {
         v.significant_bits().into()
     }
 }

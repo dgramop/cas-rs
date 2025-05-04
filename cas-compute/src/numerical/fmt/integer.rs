@@ -1,12 +1,11 @@
 //! Utility functions to format integers.
 
-use rug::Integer;
 use std::fmt::{Formatter, Write};
 use super::{FormatOptions, NumberFormat, Scientific, Separator};
 
 /// Returns true if the given integer is large enough that it should be formatted in scientific
 /// notation.
-pub fn should_use_scientific(n: &Integer) -> bool {
+pub fn should_use_scientific(n: &i64) -> bool {
     *n.as_abs() >= 1_000_000_000_000_i64
 }
 
@@ -95,7 +94,7 @@ pub fn insert_separators(s: &mut String) {
 }
 
 /// Formats an integer in decimal notation.
-pub fn fmt_decimal(f: &mut Formatter<'_>, n: &Integer, options: FormatOptions) -> std::fmt::Result {
+pub fn fmt_decimal(f: &mut Formatter<'_>, n: &i64, options: FormatOptions) -> std::fmt::Result {
     let mut s = n.to_string_radix(10);
     if let Some(max_digits) = options.precision {
         if max_digits < s.len() {
@@ -112,7 +111,7 @@ pub fn fmt_decimal(f: &mut Formatter<'_>, n: &Integer, options: FormatOptions) -
 }
 
 /// Formats an integer in scientific notation.
-pub fn fmt_scientific(f: &mut Formatter<'_>, n: &Integer, options: FormatOptions) -> std::fmt::Result {
+pub fn fmt_scientific(f: &mut Formatter<'_>, n: &i64, options: FormatOptions) -> std::fmt::Result {
     let mut s = n.to_string_radix(10);
 
     if let Some(max_digits) = options.precision {
@@ -217,7 +216,7 @@ pub fn fmt_word_str(f: &mut Formatter<'_>, input: &str) -> std::fmt::Result {
     Ok(())
 }
 
-fn fmt_word(f: &mut Formatter<'_>, n: &Integer, options: FormatOptions) -> std::fmt::Result {
+fn fmt_word(f: &mut Formatter<'_>, n: &i64, options: FormatOptions) -> std::fmt::Result {
     let mut s = n.to_string_radix(10);
     if let Some(max_digits) = options.precision {
         s = round(s, max_digits);
@@ -226,7 +225,7 @@ fn fmt_word(f: &mut Formatter<'_>, n: &Integer, options: FormatOptions) -> std::
 }
 
 /// Format an integer using the given formatting options.
-pub fn fmt(f: &mut Formatter<'_>, n: &Integer, options: FormatOptions) -> std::fmt::Result {
+pub fn fmt(f: &mut Formatter<'_>, n: &i64, options: FormatOptions) -> std::fmt::Result {
     match options.number {
         NumberFormat::Auto => {
             if should_use_scientific(n) {

@@ -1,7 +1,6 @@
 //! Useful functions for complex numbers.
 
 use cas_attrs::builtin;
-use rug::{Complex, Float};
 
 /// Returns the real part of the given complex number.
 #[derive(Debug)]

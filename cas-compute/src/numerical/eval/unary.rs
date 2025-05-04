@@ -19,11 +19,11 @@ impl Eval for Unary {
                 UnaryOpKind::Factorial => Factorial::eval_static(num),
                 UnaryOpKind::Neg => Value::Float(-num),
             }),
-            Value::Integer(num) => Ok(match self.op.kind {
+            Value::i64(num) => Ok(match self.op.kind {
                 UnaryOpKind::Not => Value::Boolean(num.is_zero()),
-                UnaryOpKind::BitNot => Value::Integer(!num),
+                UnaryOpKind::BitNot => Value::i64(!num),
                 UnaryOpKind::Factorial => Factorial::eval_static(float(num)),
-                UnaryOpKind::Neg => Value::Integer(-num),
+                UnaryOpKind::Neg => Value::i64(-num),
             }),
             Value::Complex(ref comp) => Ok(match self.op.kind {
                 UnaryOpKind::Not => Value::Boolean(comp.is_zero()),

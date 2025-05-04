@@ -6,18 +6,17 @@ use crate::symbolic::{
     simplify::{rules::do_call, step::Step},
     step_collector::StepCollector,
 };
-use rug::Integer;
 use std::collections::HashMap;
 
 /// Returns the prime factorization of the given integer.
-fn prime_factorization(mut n: Integer) -> HashMap<Integer, usize> {
+fn prime_factorization(mut n: i64) -> HashMap<i64, usize> {
     let mut factors = HashMap::new();
     if n < 0 {
         factors.insert(int(-1), 1);
         n = -n;
     }
 
-    let mut i = Integer::from(2);
+    let mut i = i64::from(2);
     while i <= n {
         while int(&n % &i) == 0 {
             *factors.entry(i.clone()).or_insert(0) += 1;
@@ -46,10 +45,10 @@ fn do_root(expr: &Expr, root: usize) -> Option<Expr> {
         |mut counts, factor| {
             match factor {
                 // for each integer factor, replace with its prime factorization
-                Expr::Primary(Primary::Integer(n)) => {
+                Expr::Primary(Primary::i64(n)) => {
                     let factorization = prime_factorization(n);
                     for (factor, count) in factorization {
-                        *counts.entry(Expr::Primary(Primary::Integer(factor))).or_insert(0) += count;
+                        *counts.entry(Expr::Primary(Primary::i64(factor))).or_insert(0) += count;
                     }
                 },
 
@@ -75,7 +74,7 @@ fn do_root(expr: &Expr, root: usize) -> Option<Expr> {
             } else {
                 Some(Expr::Exp(
                     Box::new(factor.clone()),
-                    Box::new(Expr::Primary(Primary::Integer(Integer::from(count / root))))
+                    Box::new(Expr::Primary(Primary::i64(i64::from(count / root))))
                 ))
             }
         })
@@ -88,7 +87,7 @@ fn do_root(expr: &Expr, root: usize) -> Option<Expr> {
             } else {
                 Some(Expr::Exp(
                     Box::new(factor),
-                    Box::new(Expr::Primary(Primary::Integer(Integer::from(count % root))))
+                    Box::new(Expr::Primary(Primary::i64(i64::from(count % root))))
                 ))
             }
         })
@@ -107,7 +106,7 @@ fn do_root(expr: &Expr, root: usize) -> Option<Expr> {
             3 => Primary::Call("cbrt".to_string(), vec![Expr::Mul(inside_factors)]),
             n => Primary::Call(
                 "root".to_string(),
-                vec![Expr::Mul(inside_factors), Expr::Primary(Primary::Integer(Integer::from(n)))],
+                vec![Expr::Mul(inside_factors), Expr::Primary(Primary::i64(i64::from(n)))],
             ),
         };
         Some(Expr::Mul(outside_factors) * Expr::Primary(call))

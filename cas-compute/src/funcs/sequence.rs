@@ -2,8 +2,6 @@
 
 use cas_attrs::builtin;
 use crate::consts::PHI;
-use crate::primitive::float;
-use rug::{ops::Pow, Float};
 
 /// Returns the `n`th term of the Fibonacci sequence.
 ///

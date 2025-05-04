@@ -2,7 +2,6 @@
 
 use cas_attrs::builtin;
 use crate::consts::{PI, TAU};
-use rug::Float;
 
 /// Converts the given value from degrees to radians.
 #[derive(Debug)]

@@ -1,7 +1,6 @@
 //! Builtin constants used throughout `cas-rs`.
 
 use once_cell::sync::Lazy;
-use rug::{Complex, Float};
 use super::primitive::{complex, float};
 
 pub static ZERO: Lazy<Float> = Lazy::new(|| float(0));
